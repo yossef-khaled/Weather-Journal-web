@@ -6,11 +6,22 @@ const KEY = '&appid=fc98bc7d5f7ebf04332acfa29a2345c1'
 let d = new Date();
 let newDate = d.getMonth()+'.'+ d.getDate()+'.'+ d.getFullYear();
 
-document.getElementById('generate').addEventListener('click', startAction);
 
-function startAction() {
+console.log(document.getElementById('entryHolder'));
+document.getElementById('generate').addEventListener("click", startAction);
+
+function startAction(e) {
     const cityZipCode = document.getElementById('zip').value;
+    const userEntry = document.getElementById('feelings').value;
     getWeatherData(BASEURL, cityZipCode, KEY)
+    .then(function(data){   
+        postWeatherData('/addWeatherData', 
+        {date: newDate,
+         temp: data.main.temp,
+         content: userEntry   
+        })
+    })
+    .then(updateUI());
 }
 
 const getWeatherData = async (baseURL, cityZipCode, key) => {
@@ -25,7 +36,7 @@ const getWeatherData = async (baseURL, cityZipCode, key) => {
 } 
 
 const postWeatherData = async (url = '', data = {}) => {
-    console.log(data);
+    //console.log(data);
     const responce = await fetch(url, {
         method: 'POST',
         credentials: 'same-origin',
@@ -45,5 +56,16 @@ const postWeatherData = async (url = '', data = {}) => {
     }
 }
 
-
-postWeatherData('/addWeatherData', {test: 'Test'});
+const updateUI = async () => {
+    const retrievedData  = await fetch('/getWeatherData');
+    try {
+        const uiData = await retrievedData.json();
+        console.log(uiData);
+        document.getElementById('date').innerHTML = uiData.date;
+        document.getElementById('temp').innerHTML = uiData.temp;
+        document.getElementById('content').innerHTML = uiData.content;
+    }
+    catch(error) {
+        console.log('Error !!!', error);
+    }
+}
